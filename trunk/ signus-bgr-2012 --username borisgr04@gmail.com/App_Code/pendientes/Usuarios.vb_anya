@@ -1,0 +1,214 @@
+Imports Microsoft.VisualBasic
+Imports Oracle.DataAccess.Client
+Imports Oracle.DataAccess.Types
+Imports System.Data
+Imports System.ComponentModel
+
+    Public Class Usuarios
+        Inherits BDDatos
+    Public Sub New()
+
+        Me.Tabla = "ORA_ASPNET_USERS"
+        Me.Vista = "ORA_ASPNET_USERS"
+
+    End Sub
+
+    Public Overloads Function GetAllUsers() As MembershipUserCollection
+
+        Return (Membership.GetAllUsers())
+    End Function
+    Public Function Update(ByVal user As String, ByVal correo As String) As String
+        Me.lErrorG = True
+        Dim un As String = Membership.GetUserNameByEmail(correo)
+        If Not String.IsNullOrEmpty(un) Then
+            If UCase(un) <> UCase(user) Then
+                msg = "Error. EL Correo esta registrado a nombre de Otro Usuario:" + un
+            Else
+                msg = "No realizó cambiado la dirección de Correo Electrónico"
+            End If
+
+            Return msg
+        End If
+        Try
+            Dim u As MembershipUser = Membership.GetUser(user)
+            u.Email = correo
+            Membership.UpdateUser(u)
+
+            If correo = Membership.GetUser(user).Email Then
+                msg = Me.MsgOk
+                Me.lErrorG = False
+            Else
+                msg = "Error: No se actualizó el correo electrónico "
+                Me.lErrorG = True
+            End If
+        Catch e As System.Configuration.Provider.ProviderException
+            Me.lErrorG = True
+            msg = e.Message
+        End Try
+        Return msg
+    End Function
+
+    Public Overloads Function Insertar(ByVal username As String, ByVal password As String, ByVal email As String) As String
+
+        Dim isApproved As Boolean = True
+        Dim status As MembershipCreateStatus
+        Try
+            Dim usuario As MembershipUser = Membership.CreateUser(username, password, email, "", "", isApproved, status)
+
+            Me.lErrorG = True
+            Msg = "Error:"
+            Select Case status
+                Case MembershipCreateStatus.DuplicateEmail
+                    Msg = Msg + "Correo Eléctronico Duplicado"
+                Case MembershipCreateStatus.DuplicateProviderUserKey
+                    Msg = Msg + "Duplicado User Key"
+                Case MembershipCreateStatus.DuplicateUserName
+                    Msg = Msg + "Duplicado Nombre de Usuario (Username)"
+                Case MembershipCreateStatus.InvalidAnswer
+                    Msg = Msg + "Respuesta Inválida"
+                Case MembershipCreateStatus.InvalidEmail
+                    Msg = Msg + "Correo Electrónico Inválido"
+                Case MembershipCreateStatus.InvalidPassword
+                    Msg = Msg + "Contraseña Inválida"
+                Case MembershipCreateStatus.InvalidProviderUserKey
+                    Msg = Msg + "Provider User Key Inválido "
+                Case MembershipCreateStatus.InvalidQuestion
+                    Msg = Msg + "Pregunta Iválida"
+                Case MembershipCreateStatus.InvalidUserName
+                    Msg = Msg + "Nombre de Usuario (Username) Inválido"
+                Case MembershipCreateStatus.ProviderError
+                    Msg = Msg + "Nombre de Usuario (Username) Inválido"
+                Case MembershipCreateStatus.Success
+                    Me.lErrorG = False
+                    Dim usuarioID As String = usuario.ProviderUserKey.ToString
+                    Msg = AddUserExt(username)
+                    If Me.lErrorG = False Then
+                        Msg = "Se creo el Usuario ID [" + usuarioID + "]"
+                    Else
+                        Membership.DeleteUser(username)
+                    End If
+                Case MembershipCreateStatus.UserRejected
+                    Msg = Msg + "Error: UserRejected en el Proveedor"
+            End Select
+        Catch ex As MembershipCreateUserException
+            Msg = Msg + ex.Message
+        End Try
+
+        Return Msg
+    End Function
+
+    Public Function AddUserExt(ByVal username As String) As String
+        Dim queryString As String = "INSERT INTO USEREXT (username) VALUES(:username)"
+        Dim dbCommand As New OracleCommand(queryString, dbConnection)
+        dbCommand.Parameters.Add("username", username)
+        Try
+            Me.AbrirDB()
+            dbCommand.ExecuteNonQuery()
+            Me.CerrarBD()
+        Catch ex As Exception
+            msg = ex.Message
+            lErrorG = True
+        End Try
+        Return msg
+    End Function
+
+    '<DataObjectMethodAttribute(DataObjectMethodType.Select, True)> _
+    Public Overloads Function GetRecords(ByVal busc As String) As DataTable
+
+        Me.AbrirDB()
+        Dim queryString As String = "SELECT * FROM " + Me.Tabla + " WHERE (username like '%" + busc + "%') "
+        Dim dbCommand As New OracleCommand(queryString, dbConnection)
+        Dim dataAdapter As New OracleDataAdapter
+        dataAdapter.SelectCommand = dbCommand
+        Dim dataTb As DataTable = New DataTable
+        dataAdapter.Fill(dataTb)
+        Me.CerrarBD()
+        Return dataTb
+
+    End Function
+
+    Public Function AsigPerfil(ByVal username As String, ByVal Perfil As String) As String
+
+        Dim queryString As String = "UPDATE USEREXT SET perfil=:username WHERE username=:username"
+        Dim dbCommand As New OracleCommand(queryString, dbConnection)
+        'dbCommand.Parameters.Add("perfil", Perfil)
+        dbCommand.Parameters.Add("username", username)
+
+        Dim queryString2 As String = "INSERT INTO MENU_PERFIL (SELECT APPLICATIONID,MENUID,:UserName,:Tipo_User FROM MENU_PERFIL WHERE PERFIL=:PERFIL AND TIPO_PER='P')"
+        Dim dbCommand2 As New OracleCommand(queryString2, dbConnection)
+        dbCommand2.Parameters.Add("perfil", Perfil)
+        dbCommand2.Parameters.Add("UserName", username)
+        dbCommand2.Parameters.Add("Tipo_User", "U")
+        Me.AbrirDB()
+        Dim t As OracleTransaction = Me.dbConnection.BeginTransaction()
+        Try
+            dbCommand.ExecuteNonQuery()
+            dbCommand2.ExecuteNonQuery()
+            t.Commit()
+        Catch ex As Exception
+            msg = ex.Message
+            t.Rollback()
+            lErrorG = True
+        End Try
+        Me.CerrarBD()
+        Return msg
+
+    End Function
+    Public Function AsigPerfil0(ByVal username As String, ByVal Perfil As String) As String
+
+        Dim queryString As String = "UPDATE USEREXT SET perfil=:username WHERE username=:username"
+        Dim dbCommand As New OracleCommand(queryString, dbConnection)
+        'dbCommand.Parameters.Add("perfil", Perfil)
+        dbCommand.Parameters.Add("username", username)
+
+        Dim queryString2 As String = "INSERT INTO MENU_PERFIL (SELECT APPLICATIONID,MENUID,:UserName,:Tipo_User FROM MENU_PERFIL WHERE PERFIL=:PERFIL AND TIPO_PER='P')"
+        Dim dbCommand2 As New OracleCommand(queryString2, dbConnection)
+        dbCommand2.Parameters.Add("perfil", Perfil)
+        dbCommand2.Parameters.Add("UserName", username)
+        dbCommand2.Parameters.Add("Tipo_User", "U")
+        Me.AbrirDB()
+        Dim t As OracleTransaction = Me.dbConnection.BeginTransaction()
+        Try
+            dbCommand.ExecuteNonQuery()
+            dbCommand2.ExecuteNonQuery()
+            t.Commit()
+        Catch ex As Exception
+            msg = ex.Message
+            t.Rollback()
+            lErrorG = True
+        End Try
+        Me.CerrarBD()
+        Return msg
+
+    End Function
+    Public Function GetPerfil(ByVal username As String) As String
+
+        Dim queryString As String = "select perfil from userext where username=:username"
+        Dim dbCommand As New OracleCommand(queryString, dbConnection)
+        dbCommand.Parameters.Add("username", LCase(username))
+        Dim Perfil As String = ""
+        Me.AbrirDB()
+        Perfil = Convert.ToString(dbCommand.ExecuteScalar())
+        Me.CerrarBD()
+        Return Perfil
+
+    End Function
+
+    Public Overloads Function GetAllUsuarios() As DataTable
+
+        'Return (Membership.GetAllUsers())
+        Me.AbrirDB()
+        Dim ConsQuery As String = "SELECT * FROM " + Me.Tabla
+        Dim dbCommand As New OracleCommand(ConsQuery, dbConnection)
+        Dim dataAdapter As New OracleDataAdapter
+        dataAdapter.SelectCommand = dbCommand
+        Dim dataTb As DataTable = New DataTable
+        dataAdapter.Fill(dataTb)
+        Me.CerrarBD()
+        Return dataTb
+    End Function
+
+End Class
+
+
+
