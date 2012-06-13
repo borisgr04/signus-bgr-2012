@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSources>
+    <DataSource Name="ConnectionString">
+      <rd:DataSourceID>0d99b4d4-fee2-4201-8822-b03121404887</rd:DataSourceID>
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+    </DataSource>
+  </DataSources>
+  <InteractiveHeight>11in</InteractiveHeight>
+  <rd:DrawGrid>true</rd:DrawGrid>
+  <InteractiveWidth>8.5in</InteractiveWidth>
+  <rd:SnapToGrid>true</rd:SnapToGrid>
+  <RightMargin>1in</RightMargin>
+  <LeftMargin>1in</LeftMargin>
+  <BottomMargin>1in</BottomMargin>
+  <rd:ReportID>6d0c0fb9-94af-4c24-83e0-d1391c7ed451</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DsDecl_VDECLARACION">
+      <Fields>
+        <Field Name="DEC_NRO">
+          <DataField>DEC_NRO</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="TDEC_NOM">
+          <DataField>TDEC_NOM</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_CNRO">
+          <DataField>DEC_CNRO</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_TDOC">
+          <DataField>DEC_TDOC</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_NIT">
+          <DataField>DEC_NIT</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_DVER">
+          <DataField>DEC_DVER</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_RAZSOC">
+          <DataField>DEC_RAZSOC</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="TAG_NOM">
+          <DataField>TAG_NOM</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="TER_DIR">
+          <DataField>TER_DIR</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_ANO">
+          <DataField>DEC_ANO</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_PER">
+          <DataField>DEC_PER</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="CAL_DES">
+          <DataField>CAL_DES</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_CTRF">
+          <DataField>DEC_SIG_CTRF</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SCR_TIP">
+          <DataField>DEC_SCR_TIP</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SCR_TIP2">
+          <DataField>DEC_SCR_TIP2</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SDE_TIP">
+          <DataField>DEC_SDE_TIP</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="TDECLARANTE">
+          <DataField>TDECLARANTE</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_CTRF_DV">
+          <DataField>DEC_SIG_CTRF_DV</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_CTRF_TDOC">
+          <DataField>DEC_SIG_CTRF_TDOC</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_CTRF_NOM">
+          <DataField>DEC_SIG_CTRF_NOM</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_CTRF_TAR_PRO">
+          <DataField>DEC_SIG_CTRF_TAR_PRO</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_DEC_TDOC">
+          <DataField>DEC_SIG_DEC_TDOC</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_DEC">
+          <DataField>DEC_SIG_DEC</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_DEC_DV">
+          <DataField>DEC_SIG_DEC_DV</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_SIG_DEC_NOM">
+          <DataField>DEC_SIG_DEC_NOM</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_EST">
+          <DataField>DEC_EST</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_FREG">
+          <DataField>DEC_FREG</DataField>
+          <rd:TypeName>System.DateTime</rd:TypeName>
+        </Field>
+        <Field Name="DEC_VIG">
+          <DataField>DEC_VIG</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_CPER">
+          <DataField>DEC_CPER</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_TOT">
+          <DataField>DEC_TOT</DataField>
+          <rd:TypeName>System.Double</rd:TypeName>
+        </Field>
+        <Field Name="DEC_USAP">
+          <DataField>DEC_USAP</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_USBD">
+          <DataField>DEC_USBD</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DEC_CONS">
+          <DataField>DEC_CONS</DataField>
+          <rd:TypeName>System.Int64</rd:TypeName>
+        </Field>
+        <Field Name="DEC_TIP">
+          <DataField>DEC_TIP</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="CAL_FINI">
+          <DataField>CAL_FINI</DataField>
+          <rd:TypeName>System.DateTime</rd:TypeName>
+        </Field>
+        <Field Name="CAL_FFIN">
+          <DataField>CAL_FFIN</DataField>
+          <rd:TypeName>System.DateTime</rd:TypeName>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>ConnectionString</DataSourceName>
+        <CommandText>Select * From VDeclaracion</CommandText>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+      </Query>
+      <rd:DataSetInfo>
+        <rd:DataSetName>DsDecl</rd:DataSetName>
+        <rd:TableName>VDECLARACION</rd:TableName>
+        <rd:TableAdapterName>VDECLARACIONTableAdapter</rd:TableAdapterName>
+        <rd:TableAdapterFillMethod>Fill</rd:TableAdapterFillMethod>
+        <rd:TableAdapterGetDataMethod>GetData</rd:TableAdapterGetDataMethod>
+      </rd:DataSetInfo>
+    </DataSet>
+  </DataSets>
+  <Width>5in</Width>
+  <Body>
+    <ReportItems>
+      <List Name="list1">
+        <Sorting>
+          <SortBy>
+            <SortExpression>=Fields!DEC_NRO.Value</SortExpression>
+            <Direction>Ascending</Direction>
+          </SortBy>
+        </Sorting>
+        <ZIndex>1</ZIndex>
+        <DataSetName>DsDecl_VDECLARACION</DataSetName>
+        <ReportItems>
+          <Subreport Name="subreport1">
+            <Parameters>
+              <Parameter Name="DepartamentoID">
+                <Value>=Fields!DEC_NRO.Value</Value>
+              </Parameter>
+            </Parameters>
+            <Top>0.625in</Top>
+            <ReportName>RptLiqPrivImp</ReportName>
+            <ZIndex>1</ZIndex>
+            <Left>0.5in</Left>
+          </Subreport>
+          <Textbox Name="Name">
+            <rd:DefaultName>Name</rd:DefaultName>
+            <Top>0.125in</Top>
+            <Width>3.375in</Width>
+            <Style>
+              <Color>SteelBlue</Color>
+              <BackgroundColor>White</BackgroundColor>
+              <BorderColor>
+                <Default>LightGrey</Default>
+              </BorderColor>
+              <FontFamily>Tahoma</FontFamily>
+              <FontSize>14pt</FontSize>
+              <FontWeight>700</FontWeight>
+            </Style>
+            <CanGrow>true</CanGrow>
+            <Height>0.21125in</Height>
+            <Value>=Fields!DEC_NRO.Value</Value>
+          </Textbox>
+        </ReportItems>
+        <Top>0.375in</Top>
+      </List>
+      <Textbox Name="textbox1">
+        <rd:DefaultName>textbox1</rd:DefaultName>
+        <Style>
+          <Color>SteelBlue</Color>
+          <FontFamily>Tahoma</FontFamily>
+          <FontSize>20pt</FontSize>
+          <FontWeight>700</FontWeight>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingRight>2pt</PaddingRight>
+          <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
+        </Style>
+        <CanGrow>true</CanGrow>
+        <Height>0.36in</Height>
+        <Value>Departments</Value>
+      </Textbox>
+    </ReportItems>
+    <Height>2.875in</Height>
+  </Body>
+  <Language>en-US</Language>
+  <TopMargin>1in</TopMargin>
+</Report>

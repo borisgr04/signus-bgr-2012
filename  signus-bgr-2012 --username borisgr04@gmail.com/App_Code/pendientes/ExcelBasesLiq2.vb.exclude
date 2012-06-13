@@ -1,0 +1,409 @@
+Imports Microsoft.VisualBasic
+Imports System.Data
+Imports System.Data.OleDb
+Imports System.Math
+Imports oracle.DataAccess.Client
+Imports oracle.DataAccess.Types
+Imports System.IO
+Imports System.Collections.Specialized
+
+
+Public Class BasesLiq2
+    Inherits BDDatos
+    'Dim Msg As String
+    Dim RArchivo As String
+    Dim Libro As String
+    Dim Fmto_Codigo As String
+    Dim Dlm As String = ";"
+    Dim ExcelProvider As String = "provider=Microsoft.Jet.OLEDB.4.0; "
+    Dim ExcelProperties As String = "; Extended Properties=Excel 8.0;"
+    Dim StrArchivo As String
+    Dim Nro_Error As Integer
+
+    Dim ColCampo As String = "FMIM_CAMP"
+    Dim ColTIDA As String = "TIDA_NET"
+
+    Dim Tabla_Fmto As String
+
+
+    'FMIM_TIDA
+    Dim Campos As String = "NRO_EGRESO,FECHA,TIPO_IDE,IDENTIFICACIÓN,CONTRAVENTOR,CONCEPTO,VALOR_BASE,COD_IMPTO,TIP_TAR,TARIFA,VALOR"
+    Dim TiposCampos As String = "N,D,C,C,C,C,N,C,C,N,N"
+    Dim lError As Boolean
+    Public Property Delimitador() As String
+        Get
+            Return Dlm
+        End Get
+        Set(ByVal value As String)
+            Dlm = value
+        End Set
+    End Property
+    Public Property PathLibro() As String
+        Get
+            Return Libro
+        End Get
+        Set(ByVal value As String)
+            Libro = value
+        End Set
+    End Property
+    Public Property RutaArchivo() As String
+        Get
+            Return Me.RArchivo
+        End Get
+        Set(ByVal value As String)
+            Me.RArchivo = value
+        End Set
+    End Property
+    Public Property Codigo() As String
+        Get
+            Return Fmto_Codigo
+        End Get
+        Set(ByVal value As String)
+            Fmto_Codigo = value
+            Me.Tabla_Fmto = GetTabla_Fmto()
+        End Set
+    End Property
+    Public ReadOnly Property Error_Import() As Boolean
+        Get
+            Return Me.lError
+        End Get
+    End Property
+    Public ReadOnly Property MsgResult() As String
+        Get
+            Return Me.Msg
+        End Get
+    End Property
+
+
+    Public Function GetFormato() As DataTable
+
+
+        Me.AbrirDB()
+        Dim queryString As String = "SELECT * FROM  vFmto_Imp Where FmIm_Codi='" & Me.Fmto_Codigo & "' Order By FmIm_Indx"
+        Dim dbCommand As New OracleCommand(queryString, dbConnection)
+        Dim dataAdapter As New OracleDataAdapter
+        dataAdapter.SelectCommand = dbCommand
+        Dim dataTb As DataTable = New DataTable
+        dataAdapter.Fill(dataTb)
+        Me.CerrarBD()
+        Return dataTb
+
+
+    End Function
+    Public Function GetTabla_Fmto() As String
+        Dim sw As Boolean = False
+        Dim c As Object
+
+        If BDDatos.dbConnection.State = ConnectionState.Closed Then
+            Me.AbrirDB()
+            sw = True
+        End If
+
+        Dim queryString As String = "Select FMTO_NOMB From FMTOS Where FMTO_CODI=:FMTO_CODI"
+        Dim dbCommand As New OracleCommand(queryString, dbConnection)
+        Dim dataAdapter As New OracleDataAdapter
+        dataAdapter.SelectCommand = dbCommand
+        dbCommand.Parameters.Add("FMTO_CODI", OracleDbType.Varchar2, ParameterDirection.Input).Value = Me.Fmto_Codigo
+        c = dbCommand.ExecuteScalar()
+        If sw Then
+            Me.CerrarBD()
+        End If
+
+        Dim NombreTabla As Integer = CStr(c)
+        Return (NombreTabla > 0)
+
+
+        Return True
+    End Function
+
+
+    Public Function FillBasesLiqu(ByRef objDataT As DataTable)
+        'Declaración de Conexion
+        Dim objOleConnection As OleDbConnection
+        'Declaración de Objetos DATATABLE
+
+        'Declaración de Objetos DATA ADAPTER
+        Dim objDataAdapter As OleDbDataAdapter
+        Me.lError = True
+        'CARGAR LIBRO Y TABLA
+        Try
+            'Creamos un objecto OLEDBConnection con el nombre del archivo seleccionado como Data Source
+            objOleConnection = New OleDbConnection(ExcelProvider & "data source=" & Me.Libro.Trim & ExcelProperties)
+            '* Si queremos seleccionar toda la hoja solo especificamos [Sheet1$]
+            Dim c As String = Campos
+            c = "*"
+            Dim SqlCmd As String = "Select " + c + " From [BasesLiquidacion$]  Where NRO_EGRESO<>0 "
+            objDataAdapter = New OleDbDataAdapter(SqlCmd, objOleConnection)
+            'where [Sheet1$A4] = 'Aruba'
+            ' FIN CARGAR LIBRO
+            objDataT = New DataTable
+            objDataAdapter.Fill(objDataT)
+            objOleConnection.Close()
+            Msg = "Se cargaron bien los registros "
+            Me.lError = False
+        Catch ex As OleDbException
+            Msg = "Error en la Estructura del Archivo:" + ex.Message + "<br>--> Columnas Requeridas:" + Campos
+
+        Catch ex2 As Exception
+            Msg = ex2.Message
+        End Try
+
+        Return Msg
+    End Function
+
+    Public Function Cargar_ArchivoCSV(ByRef objDataT As DataTable)
+        objDataT = Cargar_Archivo.LeerArchivoPlano(New FileInfo(Me.RArchivo))
+        Return Msg
+    End Function
+
+    Protected Function CrearTableBaseLiq() As DataTable
+        Dim dt As DataTable = New DataTable
+        Dim dtReturn As DataTable = New DataTable("BasesLiq")
+        dt = Me.GetFormato()
+        'Dim TiDa As String
+        'Dim CoNa As String
+        Dim DtColum As DataColumn
+        For i As Integer = 0 To dt.Rows.Count - 1
+            DtColum = New DataColumn
+            DtColum.ColumnName = dt.Rows(i)(Me.ColCampo).ToString
+            DtColum.DataType = Type.GetType(dt.Rows(i)(Me.ColTIDA).ToString)
+            'dtcolum.MaxLength=
+            'TiDa = dt.Rows(i)(Me.ColTIDA).ToString
+            'CoNa = dt.Rows(i)(Me.ColCampo).ToString
+            'dtReturn.Columns.Add(CoNa, System.Type.GetType(TiDa))
+            dtReturn.Columns.Add(DtColum)
+        Next
+        dtReturn.AcceptChanges()
+        Return dtReturn
+
+    End Function
+    Public Function ValidarDatos() As DataTable
+        'Leer el Archivo Importa el Archivo
+        Dim dtBLImport As New DataTable
+        Dim dtTemp As DataTable = New DataTable
+
+        FillBasesLiqu(dtBLImport)
+        If Me.lError = True Then
+            Return dtTemp
+        End If
+        'Crea Tabla de BasesLiq
+        Dim dtBLiquid As DataTable = CrearTableBaseLiq()
+
+        '<summary>
+        ' Validar Estructura / Columnas
+        Dim dt As DataTable = New DataTable
+        dt = Me.GetFormato()
+        Me.Msg += "<br>"
+        If dtBLImport.Columns.Count < dt.Rows.Count Then
+            Me.lError = True
+            Me.Msg = "Error en el Nro de Columnas Importadas( " & dtBLImport.Columns.Count & ") Requerida (" + dt.Rows.Count + ")"
+            Return dtTemp
+        End If
+        For i As Integer = 0 To dt.Rows.Count - 1
+            Dim c As String = dtBLImport.Columns(i).ColumnName
+            Dim TD_Imp As String = UCase(dtBLImport.Columns(i).DataType.ToString).Trim
+            Dim TD_Req As String = UCase(dt.Rows(i)(Me.ColTIDA).ToString).Trim
+            Dim Cam_Req As String = dt.Rows(i)(Me.ColCampo).ToString
+            If (c <> dt.Rows(i)(Me.ColCampo).ToString) Then
+                Msg += "<b>COLUMNA [" & i & "]:</b>Error Nombre de Campo</b><br/>"
+                Msg += "<b> -Importada</b>  " & c & " <b>Tipo Dato</b> " & TD_Imp & "<br/>"
+                Msg += "<b> -Requerida</b>  " & Cam_Req & " <b>Tipo Dato</b> " & TD_Req & "<br>"
+                Me.lError = True
+            End If
+            If (TD_Imp <> TD_Req) Then
+                Msg += "<b>COLUMNA [" & i & "]:</b>Error Tipo de Dato<br/> "
+                Msg += "<b> -Importada</b>  " & c & " <b>Tipo Dato</b> " & TD_Imp & "<br/>"
+                Msg += "<b> -Requerida</b>  " & Cam_Req & " <b>Tipo Dato</b> " & TD_Req & "<br>"
+                Me.lError = True
+            End If
+        Next
+        If Me.lError = True Then
+            Return dtTemp
+        End If
+        '</summary>
+
+
+        dtTemp = Me.CrearTableBaseLiq()
+        If dtBLImport.Rows.Count > 0 Then
+            Dim f As Integer = 1
+            For Each Row As DataRow In dtBLImport.Rows
+                Dim Filas As DataRow
+                Filas = dtTemp.NewRow
+                'Msg += " <hr/> "
+                For i As Integer = 0 To dt.Rows.Count - 1
+                    ' Me.Msg += "<b>" & dt.Rows(i)(Me.ColCampo).ToString & "</b> : " & Row(i).ToString + " <br/> "
+                    Select Case dt.Rows(i)("FMIM_TIDA").ToString
+                        Case "C"
+                            If Not TypeOf Row(i) Is String Then
+                                Me.Msg += " Registro N° [" + f.ToString + "] Campo: " + dt.Rows(i)(Me.ColCampo).ToString + "<b> Datos No es Texto</b><br/>"
+                                Me.lError = True
+                            End If
+                        Case "N"
+                            If Not TypeOf Row(i) Is Double Then
+                                Me.Msg += " Registro N° [" + f.ToString + "] Campo: " + dt.Rows(i)(Me.ColCampo).ToString + "<b> Datos No es Númerico</b><br/>"
+                                Me.lError = True
+                            End If
+                        Case "F"
+                            If Not TypeOf Row(i) Is DateTime Then
+                                Me.Msg += " Registro N° [" + f.ToString + "] Campo: " + dt.Rows(i)(Me.ColCampo).ToString + "<b> Datos No es Fecha</b><br/>"
+                                Me.lError = True
+                            End If
+                    End Select
+                    If Row(i) Is DBNull.Value Then
+                        Me.Msg += " Registro N° [" + f.ToString + "] Campo: " + dt.Rows(i)(Me.ColCampo).ToString + "<b> Dato Cargado como Null o Vacío</b><br/>"
+                        Me.lError = True
+                    End If
+
+                    Filas(i) = Row(i)
+                Next
+                f += 1
+                dtTemp.Rows.Add(Filas)
+            Next Row
+        End If
+        If Me.lError = False Then
+            Msg += "-No se encontraron problemas en la válidación de los Datos"
+        End If
+        Return dtTemp
+    End Function
+
+    'Leer Archivo Plano Separado por Comas
+    Public Function LeerArchivo() As DataTable
+
+        Dim fileName As String = RutaArchivo
+        Dim stream As New FileStream(fileName, FileMode.Open, FileAccess.Read)
+        Dim reader As New StreamReader(stream)
+        'Crear la Data, de acuerdo al Formato de Importación Seleccionado
+        Dim dt As DataTable = CrearTableBaseLiq()
+
+        Dim dtrow As DataRow
+        Dim Registro As String
+        Dim Columnas As Integer = dt.Columns.Count
+        Dim i As Integer = 1
+        Dim dtFmt As DataTable = Me.GetFormato()
+
+        Msg = ""
+        StrArchivo = ""
+        Nro_Error = 0
+        Dim sw As Boolean = False
+        While reader.Peek() > -1
+            dtrow = dt.NewRow
+            Registro = reader.ReadLine()
+            Dim col() As String = Registro.Split(Dlm)
+
+            If col.Length = Columnas Then
+                StrArchivo += "Registro N°" & i.ToString & "-" & (Registro) + "<br>"
+                For k As Integer = 0 To Columnas - 1
+                    Select Case dtFmt.Rows(k)("FMIM_TIDA").ToString
+                        Case "C"
+                            dtrow(k) = col(k)
+                        Case "N"
+                            Try
+                                dtrow(k) = CDbl(IIf(col(k) = "", 0, col(k)))
+                            Catch ex As Exception
+                                Msg += String.Format("Error Fila {0}, Error al Convertir a Númerico, Campo {1}, Error {2}<br>", i, dtFmt.Rows(k)(Me.ColCampo).ToString, ex.Message)
+                                sw = True
+                                dtrow(k) = 0
+                                Nro_Error += 1
+                            End Try
+
+                        Case "D"
+                            If IsDate(col(k)) Then
+                                dtrow(k) = CDate(col(k))
+                            Else
+                                Msg += String.Format("Linea {0}, Error Valor {1} no Correnponde a Fecha Válida, Campo {2}<br> ", i, col(k), dtFmt.Rows(k)(Me.ColCampo).ToString)
+                                sw = True
+                                Nro_Error += 1
+                            End If
+                    End Select
+                Next k
+                dt.Rows.Add(dtrow)
+                'dt.AcceptChanges()
+            Else
+                Msg += String.Format("Numero de Columnas Erraradas - Registro {0}<br>", i)
+            End If
+            i += 1
+        End While
+        If sw Then
+            Me.lError = sw
+        Else
+            Msg = ""
+        End If
+        reader.Close()
+        'Validar Existencia del Nit cómo Agente Recuadador
+        Return dt
+    End Function
+
+    '  Validación con la Base de Datos
+
+    Public Function Validar() As DataTable
+        Dim dt As DataTable = Me.LeerArchivo()
+        Dim TVALORIMPTO As Double = 0
+        Dim TVALORBASE As Double = 0
+        For i As Integer = 0 To dt.Rows.Count - 1
+            Dim objT As Terceros = New Terceros
+            Dim dtT As DataTable
+            'Verificación de Nit
+            Dim nit As String = dt.Rows(i)("NIT_AR")
+            Dim dv As String = dt.Rows(i)("DV_AR")
+            Dim ClDec As String = dt.Rows(i)("Cdec")
+            Dim Imp As String = dt.Rows(i)("Impto")
+            Dim AGravable As String = dt.Rows(i)("AGravable")
+            Dim PGravable As String = dt.Rows(i)("PGravable")
+
+            Dim VALORBASE As Double = dt.Rows(i)("VALORBASE")
+            Dim TARIFA As Double = dt.Rows(i)("TARIFA")
+            Dim VALORIMPTO As Double = dt.Rows(i)("VALORIMPTO")
+            Dim VALORIMPTOC As Double = VALORBASE * TARIFA
+            TVALORIMPTO += VALORIMPTO
+            TVALORBASE += VALORBASE
+
+            dtT = objT.GetByIde(nit, dv, "AR")
+            If dtT.Rows.Count < 1 Then
+                Msg += String.Format("Error Nit {0}, No Corresponde a un Agente Recuadador<br>", nit)
+                Nro_Error += 1
+            Else
+                'Msg += "Si Existe el Nit"
+            End If
+            Dim ObjC As CDeclaraciones = New CDeclaraciones
+
+            If Not ObjC.IsCDec_Nit(nit, ClDec) Then
+                Msg += String.Format("Error Cdec, NIT {0} No tiene Asociado la Clase de Declaración {1}<br>", nit, ClDec)
+                Nro_Error += 1
+            Else
+                'Msg += "Si Tiene Asociado, la Cdec"
+            End If
+
+            If Not ObjC.IsCDec_Impto(ClDec, Imp) Then
+                Msg += String.Format("Error Cdec, Impto {0} No esta Asociado a la Clase de Declaración {1}<br>", Imp, ClDec)
+                Nro_Error += 1
+            Else
+                'Msg += "Si Tiene Asociado, la Impto"
+            End If
+
+            If Not ObjC.IsCdec_APGravable(ClDec, AGravable, PGravable) Then
+                Msg += String.Format("Error Cdec, Año: {0} y Periodo: {1} Gravable No Corresponden  No esta Asociado a la Clase de Declaración {1}<br>", AGravable, PGravable, ClDec)
+                Nro_Error += 1
+            Else
+                'Msg += "Si Tiene Asociado, la A y P Gravable"
+            End If
+
+            If VALORIMPTO <> VALORIMPTOC Then
+                Msg += String.Format("Valor Base {0} x Tarifa {1} = Valor Impto {2}, No corresponde con el Valor del Archivo Valor_Impto {3}", VALORBASE, TARIFA, VALORIMPTOC, VALORIMPTO)
+                Nro_Error += 1
+            Else
+                'Msg += "Si Corresponde el Cálculo de Impto"
+            End If
+
+        Next
+        Msg += "Valor Base :" + TVALORBASE.ToString + "<BR>"
+        Msg += "Valor Impto :" + TVALORIMPTO.ToString + "<BR>"
+
+        Return dt
+    End Function
+
+    'Public Sub New(ByVal PathLibro As String)
+    '   Me.Libro = PathLibro
+    'End Sub
+
+End Class
+
